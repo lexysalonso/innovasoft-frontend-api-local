@@ -25,6 +25,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login, isAuthenticated } = useCliente();
   const navigate = useNavigate();
 
@@ -39,14 +40,17 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     if (!username.trim()) {
       setError('El usuario es requerido');
+      setLoading(false);
       return;
     }
 
     if (!password.trim()) {
       setError('La contraseña es requerida');
+      setLoading(false);
       return;
     }
 
@@ -57,6 +61,8 @@ const Login = () => {
     }
 
     const result = await login(username, password);
+    setLoading(false);
+    
     if (result.success) {
       navigate('/home');
     } else {
@@ -135,9 +141,10 @@ const Login = () => {
               type="submit"
               fullWidth
               variant="contained"
+              disabled={loading}
               sx={{ mt: 1, mb: 2, bgcolor: '#1a237e' }}
             >
-              INICIAR SESIÓN
+              {loading ? 'CARGANDO...' : 'INICIAR SESIÓN'}
             </Button>
           </form>
 

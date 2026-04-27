@@ -35,7 +35,7 @@ const initialForm = {
   interesFK: '',
 };
 
-const API_URL = 'https://pruebareactjs.test-class.com/Api/';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const MantenimientoClientes = () => {
   const { isAuthenticated, authInitialized, userid } = useCliente();

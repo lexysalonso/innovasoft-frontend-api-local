@@ -27,6 +27,7 @@ const Registro = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { registro } = useCliente();
   const navigate = useNavigate();
 
@@ -36,20 +37,29 @@ const Registro = () => {
   };
 
   const validatePassword = (password) => {
-    const errors = [];
-    if (password.length < 8 || password.length > 20) {
-      errors.push('de 8 a 20 caracteres');
+    if (!password || password.length < 8) {
+      return 'Mínimo 8 caracteres requeridos';
     }
-    if (!/\d/.test(password)) {
-      errors.push('al menos un número');
+    if (password.length > 20) {
+      return 'Máximo 20 caracteres permitidos';
     }
     if (!/[A-Z]/.test(password)) {
-      errors.push('al menos una mayúscula');
+      return 'Debe tener al menos una mayúscula';
     }
     if (!/[a-z]/.test(password)) {
-      errors.push('al menos una minúscula');
+      return 'Debe tener al menos una minúscula';
     }
-    return errors;
+    if (!/\d/.test(password)) {
+      return 'Debe tener al menos un número';
+    }
+    return null;
+  };
+
+  const validateUsername = (username) => {
+    if (!username || username.length < 3) {
+      return 'Mínimo 3 caracteres requeridos';
+    }
+    return null;
   };
 
   const validateEmail = (email) => {
@@ -60,39 +70,54 @@ const Registro = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!formData.username.trim()) {
       setError('El usuario es requerido');
+      setLoading(false);
+      return;
+    }
+
+    const userError = validateUsername(formData.username);
+    if (userError) {
+      setError(userError);
+      setLoading(false);
       return;
     }
 
     if (!formData.email.trim()) {
       setError('El email es requerido');
+      setLoading(false);
       return;
     }
 
     if (!validateEmail(formData.email)) {
       setError('Ingrese un correo electrónico válido');
+      setLoading(false);
       return;
     }
 
     if (!formData.password.trim()) {
       setError('La contraseña es requerida');
+      setLoading(false);
       return;
     }
 
-    const passwordErrors = validatePassword(formData.password);
-    if (passwordErrors.length > 0) {
-      setError(`La contraseña debe tener ${passwordErrors.join(', ')}`);
+    const pwError = validatePassword(formData.password);
+    if (pwError) {
+      setError(pwError);
+      setLoading(false);
       return;
     }
 
     const result = await registro(formData.username, formData.email, formData.password);
+    setLoading(false);
+    
     if (result.success) {
       setSuccess(true);
       setTimeout(() => navigate('/home'), 2000);
     } else {
-      setError(result.error);
+      setError(result.error || 'Error al registrar. Verifica los datos.');
     }
   };
 
@@ -160,9 +185,10 @@ const Registro = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
+                disabled={loading}
                 sx={{ mt: 2, mb: 2, bgcolor: '#1a237e' }}
               >
-                REGISTRARSE
+                {loading ? 'REGISTRANDO...' : 'REGISTRARSE'}
               </Button>
             </Stack>
           </form>

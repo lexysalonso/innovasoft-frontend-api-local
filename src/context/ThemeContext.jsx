@@ -71,6 +71,42 @@ export const ThemeProvider = ({ children }) => {
     [mode]
   );
 
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'no-selection-style';
+    style.innerHTML = `
+      *::selection {
+        background: transparent !important;
+        color: inherit !important;
+      }
+      *::-moz-selection {
+        background: transparent !important;
+        color: inherit !important;
+      }
+      ::selection {
+        background: transparent !important;
+        color: inherit !important;
+      }
+      ::-moz-selection {
+        background: transparent !important;
+        color: inherit !important;
+      }
+      body::selection {
+        background: transparent !important;
+      }
+      body *::selection {
+        background: transparent !important;
+      }
+    `;
+    if (!document.getElementById('no-selection-style')) {
+      document.head.appendChild(style);
+    }
+    return () => {
+      const existing = document.getElementById('no-selection-style');
+      if (existing) existing.remove();
+    };
+  }, [mode]);
+
   return (
     <ThemeContext.Provider value={{ mode, toggleTheme }}>
       <MuiThemeProvider theme={theme}>

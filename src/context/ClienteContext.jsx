@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API_URL = 'https://pruebareactjs.test-class.com/Api/';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const ClienteContext = createContext();
 
@@ -224,6 +224,12 @@ export const ClienteProvider = ({ children }) => {
     try {
       const response = await api.post('api/Authenticate/login', { username, password });
       const { token, userid, username: userName } = response.data;
+      
+      if (!token || !userid) {
+        dispatch({ type: 'SET_ERROR', payload: 'Credenciales inválidas' });
+        return { success: false, error: 'Credenciales inválidas' };
+      }
+      
       localStorage.setItem('token', token);
       localStorage.setItem('userid', userid);
       localStorage.setItem('username', userName);
@@ -254,16 +260,24 @@ export const ClienteProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await api.post('api/Authenticate/register', { username, email, password });
-      if (response.data?.status === 'Success') {
+      const data = response.data;
+      
+      if (data?.status === 'Success') {
         const loginRes = await api.post('api/Authenticate/login', { username, password });
         const { token, userid, username: userName } = loginRes.data;
         localStorage.setItem('token', token);
         localStorage.setItem('userid', userid);
         localStorage.setItem('username', userName);
         dispatch({ type: 'SET_USUARIO', payload: { usuario: { username: userName }, isAuthenticated: true, token, userid } });
-        return { success: true, data: response.data };
+        return { success: true, data };
       }
-      return { success: true, data: response.data };
+      
+      if (data?.status === 'Error' && data?.message) {
+        dispatch({ type: 'SET_ERROR', payload: data.message });
+        return { success: false, error: data.message };
+      }
+      
+      return { success: false, error: 'Error en el registro' };
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Error en el registro';
       dispatch({ type: 'SET_ERROR', payload: errorMsg });
