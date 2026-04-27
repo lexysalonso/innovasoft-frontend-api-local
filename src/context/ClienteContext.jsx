@@ -285,7 +285,17 @@ export const ClienteProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await api.post('api/Authenticate/logout', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (error) {
+      // Ignore API errors on logout
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('userid');
     localStorage.removeItem('username');
